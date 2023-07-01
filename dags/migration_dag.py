@@ -44,7 +44,7 @@ with DAG(
     )
 
     transform_orders = PythonOperator(
-        task_id='transform',
+        task_id='transform_orders',
         python_callable=transform,
         op_kwargs={'table_name':'orders'},
         provide_context=True
@@ -54,4 +54,23 @@ with DAG(
         sql=transform_orders.output,
     )
 
+    extract_agents = PythonOperator(
+        task_id='extract_agents',
+        python_callable=extract_table,
+        op_kwargs={'table_name':'agents'},
+        provide_context=True
+    )
+
+    transform_agents = PythonOperator(
+        task_id='transform_agents',
+        python_callable=transform,
+        op_kwargs={'table_name':'agents'},
+        provide_context=True
+    )
+    load_agents = SnowflakeOperator(
+        task_id='load_agents',
+        sql=transform_agents.output,
+    )
+
     extract_orders >> transform_orders >> load_orders
+    extract_agents >> transform_agents >> load_agents
