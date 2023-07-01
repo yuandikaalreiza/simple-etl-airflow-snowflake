@@ -2,7 +2,7 @@ def extract():
     # connecting the sql
     import sqlite3
     import include.sql as sql
-    con = sqlite3.connect('sample.db')
+    con = sqlite3.connect('sampleee.db')
     cur = con.cursor()
 
     # sql statement
@@ -21,4 +21,7 @@ def extract():
     customer = cur.execute('select * from customer').fetchall()
     agents = cur.execute('select * from agents').fetchall()
     cur.close()
+    return orders, customer, agents
+
+def transform(orders, customer, agents):
     return orders, customer, agents
