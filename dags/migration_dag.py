@@ -21,7 +21,7 @@ def extract_table(table_name, **kwargs):
     ti = kwargs['ti']
     ti.xcom_push(key=f'table_data_{table_name}', value=table_data)
 
-def create_query(table_name, **kwargs):
+def transform(table_name, **kwargs):
     ti = kwargs['ti']
     table_data = ti.xcom_pull(task_ids=f'extract_{table_name}', key=f'table_data_{table_name}')
     query = f'insert into {table_name} values'
@@ -43,15 +43,15 @@ with DAG(
         provide_context=True
     )
 
-    create_query_orders = PythonOperator(
-        task_id='create_query',
-        python_callable=create_query,
+    transform_orders = PythonOperator(
+        task_id='transform',
+        python_callable=transform,
         op_kwargs={'table_name':'orders'},
         provide_context=True
     )
     load_orders = SnowflakeOperator(
         task_id='load_orders',
-        sql=create_query_orders.output,
+        sql=transform_orders.output,
     )
 
-    extract_orders >> create_query_orders >> load_orders
+    extract_orders >> transform_orders >> load_orders
