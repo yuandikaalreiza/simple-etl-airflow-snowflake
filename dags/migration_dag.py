@@ -49,6 +49,7 @@ with DAG(
         op_kwargs={'table_name':'orders'},
         provide_context=True
     )
+
     load_orders = SnowflakeOperator(
         task_id='load_orders',
         sql=transform_orders.output,
@@ -67,10 +68,31 @@ with DAG(
         op_kwargs={'table_name':'agents'},
         provide_context=True
     )
+
     load_agents = SnowflakeOperator(
         task_id='load_agents',
         sql=transform_agents.output,
     )
 
+    extract_customer = PythonOperator(
+        task_id='extract_customer',
+        python_callable=extract_table,
+        op_kwargs={'table_name':'customer'},
+        provide_context=True
+    )
+
+    transform_customer = PythonOperator(
+        task_id='transform_customer',
+        python_callable=transform,
+        op_kwargs={'table_name':'customer'},
+        provide_context=True
+    )
+
+    load_customer = SnowflakeOperator(
+        task_id='load_customer',
+        sql=transform_customer.output,
+    )
+
     extract_orders >> transform_orders >> load_orders
     extract_agents >> transform_agents >> load_agents
+    extract_customer >> transform_customer >> load_customer
